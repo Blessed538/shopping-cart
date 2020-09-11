@@ -4,32 +4,35 @@ import { Route, Switch, BrowserRouter as Router } from 'react-router-dom';
 import Shop from './Shop/Shop';
 import './App.css';
 import Sign from './component/sign-in-and-sign-up/Sign';
-import { auth } from './component/Firebase/Firebase.utils';
+import { auth, createUserProfileDocument } from './component/Firebase/Firebase.utils';
+import Header from './component/Header/Header';
+import {connect} from 'react-redux';
+import { setCurrentUser } from './Redux/user.actions';
 
 class Main extends Component {
-  constructor() {
-    super();
-    this.state = {
-      currentUser: null,
-    };
-  }
+  
 
   unsubscribeFromAuth = null;
 
   componentDidMount() {
-    this.unsubscribeFromAuth = auth.onAuthStateChanged((user) => {
-      this.setState({ currentUser: user });
-    });
+    const {setCurrentUser} = this.props;
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async user => {
+      createUserProfileDocument(user);
+
+     });
   }
 
-  componentWillUnmount() {
+  
+     componentWillUnmount() {
     this.unsubscribeFromAuth();
   }
 
+  
   render() {
     return (
       <div>
         <Router>
+          <Header />
           <Switch>
             <Route exact path="/" component={Homepage} />
             <Route exact path="/shop" component={Shop} />
@@ -41,4 +44,8 @@ class Main extends Component {
   }
 }
 
-export default Main;
+const mapDispatchToProps = dispatch => ({
+setCurrentUser:user => dispatch(setCurrentUser(user))
+})
+
+export default connect(null,mapDispatchToProps)(Main);
